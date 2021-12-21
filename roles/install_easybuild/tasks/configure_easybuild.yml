@@ -1,0 +1,35 @@
+---
+
+  - name: Create easybuild configs folder
+    file:
+      path: "/etc/easybuild.d"
+      state: directory
+      owner: "{{ admin_user_name }}"
+      group: "{{ admin_user_group }}"
+      mode: 0765
+  
+  - name: Create easybuild storage folder
+    file:
+      path: "/var/lib/easybuild/"
+      state: directory
+      owner: "{{ admin_user_name }}"
+      group: "{{ admin_user_group }}"
+      mode: 0765
+
+  - name: Copy easybuild config files to remote
+    ansible.builtin.copy:
+      remote_src: false
+      src: '../configuration/'
+      dest: /etc/easybuild.d/
+      owner: "{{ admin_user_name }}"
+      group: "{{ admin_user_group }}"
+      mode: 0644
+
+  - name: Set easybuild aliases for ease of use
+    ansible.builtin.copy:
+      remote_src: false
+      src: './files/set_easybuild_aliases.sh'
+      dest: '/etc/profile.d/set_easybuild_aliases.sh'
+      owner: "{{ admin_user_name }}"
+      group: "{{ admin_user_group }}"
+      mode: 0755

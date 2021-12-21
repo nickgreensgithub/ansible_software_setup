@@ -1,0 +1,42 @@
+---
+
+- name: install dependencies
+  apt:
+    name: 
+    - acl # this is missing in ubuntu 20
+    state: present
+  become: yes
+
+- name: Create a directory if it does not exist
+  ansible.builtin.file:
+    path: "{{ base_path }}"
+    state: directory
+    mode: '0755'
+    owner: "{{ docker_user_name  }}"
+    group: "docker"
+  become: yes
+  become_user: root
+
+- name: Copy Docker Compose file to server
+  template:
+    src: flame-docker-compose.j2
+    dest: "{{ base_path }}/docker-compose.yml"
+    owner: "{{ docker_user_name  }}"
+    group: "docker"
+    mode: '0775'
+  become: yes
+
+- name: Make sure docker is running
+  service: 
+    name: docker 
+    state: started
+
+- name: deploy Docker Compose stack
+  community.docker.docker_compose:
+    project_src: "{{ base_path }}"
+    files:
+      - docker-compose.yml
+    state: present
+  become: yes
+  become_user: "{{ docker_user_name }}"
+  register: output

@@ -1,0 +1,17 @@
+---
+
+- name: Add custom DNSMasq file
+  template:
+    src: dns_masq_record.j2
+    dest: "/etc/dnsmasq.d/00-additional.conf"
+    mode: '0775'
+  become: yes
+
+- name: Restart PiHole service
+  ansible.builtin.service:
+    name: pihole-FTL
+    state: restarted
+
+# - name: restart Pi-hole DNS
+#   ansible.builtin.command:
+#     cmd: "pihole restartdns"

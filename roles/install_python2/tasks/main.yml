@@ -1,0 +1,17 @@
+---
+
+  - name: Install latest python2
+    apt:
+      name: python2
+      state: latest 
+    when: version_number is undefined
+
+  - name: Get the installer for python2 version of pip
+    ansible.builtin.command:
+      cmd: "curl https://bootstrap.pypa.io/pip/2.7/get-pip.py --output /tmp/get-pip.py"
+      creates: "/tmp/get-pip.py"
+  
+  - name: Install pip for python2
+    ansible.builtin.command:
+      cmd: "sudo python2 /tmp/get-pip.py"
+      creates: /usr/local/lib/python2.*/dist-packages/pip

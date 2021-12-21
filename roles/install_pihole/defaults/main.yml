@@ -1,0 +1,17 @@
+FIREWALL_SETUP: true
+FIREWALL_PORTS:
+  HTTP:
+    PORT: 80
+    PROTOCOL: tcp
+  SSH:
+    PORT: ssh
+    PROTOCOL: tcp
+  DNS:
+    PORT: 53
+    PROTOCOL: udp
+  DNSTCP:
+    PORT: 53
+    PROTOCOL: tcp
+
+REDIRECT_DOMAIN: "test.lan"
+REDIRECT_TO: "{{ hostvars['proxy'].ansible_host}}"

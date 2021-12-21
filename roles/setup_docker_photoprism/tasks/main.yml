@@ -1,0 +1,46 @@
+---
+
+
+  - name: Create a directory if it does not exist
+    ansible.builtin.file:
+      path: "{{ LOCATION }}"
+      state: directory
+      mode: '0755'
+      owner: '{{ PHOTO_MANAGMENT_USER }}'
+      group: "docker"
+    become: yes
+    become_user: root
+
+  - name: Copy Docker Compose file to server
+    template:
+      src: docker-compose.yml.j2
+      dest: "{{ LOCATION }}/docker-compose.yml"
+      owner: '{{ PHOTO_MANAGMENT_USER }}'
+      group: "docker"
+      mode: '0775'
+    become: yes
+
+  - name: Copy jobs.ini file to server
+    template:
+      src: jobs.ini.j2
+      dest: "{{ LOCATION }}/jobs.ini"
+      owner: '{{ PHOTO_MANAGMENT_USER }}'
+      group: "docker"
+      mode: '0775'
+    become: yes
+
+  - name: Make sure docker is running
+    service: 
+      name: docker 
+      state: started
+
+  - name: deploy Docker Compose stack
+    community.docker.docker_compose:
+      project_src: "{{ LOCATION }}"
+      files:
+      - docker-compose.yml
+      restarted: yes
+    become: yes
+    #become_user: '{{ PHOTO_MANAGMENT_USER }}'
+
+

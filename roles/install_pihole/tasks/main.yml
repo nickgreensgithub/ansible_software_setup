@@ -1,0 +1,71 @@
+---
+
+- name: Install dependencies
+  apt:
+    name: 
+      - git
+
+# - name: Make sure python versions are installed
+#   ansible.builtin.include_role:
+#     name: install_python
+
+- name: Clone git repo
+  ansible.builtin.git:
+    repo: https://github.com/pi-hole/pi-hole.git
+    dest: /tmp/Pi-hole
+    depth: 1
+    clone: true
+
+- name: Add a pihole group
+  ansible.builtin.group:
+    name: "pihole"
+    state: present
+
+- name: Add a pihole user
+  ansible.builtin.user:
+    name: "pihole"
+    state: present
+    group: "pihole"
+
+- name: Create /etc/pihole/ directory
+  ansible.builtin.file:
+    path: "/etc/pihole/"
+    state: directory
+    mode: '0755'
+    owner: "pihole"
+    group: "pihole"
+  become: yes
+  become_user: root
+
+- name: Copy setupvars file to location
+  vars:
+    SET_PIHOLE_ADMIN_PASSWORD: "{{ pihole_admin_password | password_hash('sha512') }}"
+  template:
+    src: setupVars.conf.j2
+    dest: "/etc/pihole/setupVars.conf"
+    owner: "pihole"
+    group: "pihole"
+    mode: '0775'
+  become: yes
+
+- name: Run the automated installer
+  become: yes
+  ansible.builtin.command: 
+    cmd: sudo bash basic-install.sh --unattended
+    chdir: "/tmp/Pi-hole/automated install/"
+
+- name: Configure firewall for http and dns (ipv4)
+  become: True
+  community.general.ufw:
+    rule: allow
+    comment: "{{ item.key }}"
+    protocol: "{{ item.value.PROTOCOL }}"
+    to_port: "{{ item.value.PORT }}"
+  with_dict: "{{ FIREWALL_PORTS }}"
+  when: "{{ FIREWALL_SETUP }}"
+
+- name: Enable ufw
+  become: True
+  community.general.ufw:
+    state: enabled
+  when: "{{ FIREWALL_SETUP }}"

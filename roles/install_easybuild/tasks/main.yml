@@ -1,0 +1,4 @@
+#TODO set default variable values
+#TODO turn config file into template and accept paths as variables
+- { include: install_easybuild.yml, become: yes }
+- { include: configure_easybuild.yml, become: yes }

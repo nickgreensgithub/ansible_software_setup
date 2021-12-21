@@ -1,0 +1,4 @@
+docker_user_password: "{{ lookup('env','REMOTE_DOCKER_PASSWORD') }}"
+base_path: /opt/flame
+DATA_MOUNT_PATH: "{{ base_path }}/data"
+FLAME_PASSWORD: street-uncle-mercy-silicon

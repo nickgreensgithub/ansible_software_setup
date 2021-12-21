@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+export PATH="{{ eb_tmp }}/bin:{{ ansible_env.PATH }}:{{ lmod_module_root }}/lmod/lmod/libexec"
+export EB_PYTHON=python3
+export PYTHONPATH=$(/bin/ls -rtd -1 {{eb_tmp}}/lib*/python*/site-packages | tail -1)
+eb --install-latest-eb-release --prefix {{ lmod_module_root }}

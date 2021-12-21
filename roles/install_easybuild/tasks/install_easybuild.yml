@@ -1,0 +1,61 @@
+---
+  - name: Install easybuild dependencies
+    ansible.builtin.apt:
+      name: '{{ easybuild_deps }}'
+      state: present
+
+  - name: Install temporary version of easybuild
+    pip:
+      name: easybuild
+      extra_args: --ignore-installed --prefix {{eb_tmp}} easybuild
+
+  - name: Create modules folder
+    file:
+      path: "{{lmod_module_root}}/{{modules_folder}}"
+      state: directory
+      owner: "{{ admin_user_name }}"
+      group: "{{ admin_user_group }}"
+      mode: 0765
+
+  - name: Create easybuild folder
+    file:
+      path: "{{lmod_module_root}}/{{modules_folder}}/easybuild"
+      state: directory
+
+  - name: Debug all env vars
+    debug:
+      var: ansible_env
+
+#! TODO for some reason ansible has issues running this part, have to do it manually for now
+
+
+  - name: Save bash file for creating easybuild module
+    become: yes
+    template:
+      src: ../files/install_module.sh.j2
+      dest: /tmp/install_eb_module.sh
+      owner: "{{ admin_user_name }}"
+      group: "{{ admin_user_group }}"
+      mode: 'u=rwx'
+
+  # - name: Install module version of easybuild
+  #   become: no
+  #   ansible.builtin.shell: | 
+  #       export PYTHONPATH=$(/bin/ls -rtd -1 {{eb_tmp}}/lib*/python*/site-packages | tail -1) && echo $LMOD_CMD && 
+  #       eb --install-latest-eb-release --prefix {{lmod_module_root}}
+  #   environment: 
+  #     LMOD_CMD: lmod
+  #     PATH: "{{ eb_tmp }}/bin:{{ ansible_env.PATH }}:{{ lmod_module_root }}/lmod/lmod/libexec"
+  #     EB_PYTHON: python3
+  #   args:
+  #     executable: /bin/bash
+
+  - name: Copy profile.d file to append easybuild path to MODULEPATH
+    vars:
+      CUSTOM_MODULE_PATH: "{{lmod_module_root}}/{{modules_folder}}/all"
+    template:
+      src: ../files/set_easybuild_env_variables.sh.j2
+      dest: /etc/profile.d/set_easybuild_env_variables.sh
+      owner: "{{ admin_user_name }}"
+      group: "{{ admin_user_group }}"
+      mode: 0755

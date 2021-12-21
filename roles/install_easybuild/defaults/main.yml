@@ -1,0 +1,4 @@
+easybuild_deps:
+    - 'libssl-dev'
+    - 'libibverbs-dev'
+eb_tmp: /tmp/eb

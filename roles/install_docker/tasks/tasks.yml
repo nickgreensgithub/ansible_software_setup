@@ -1,0 +1,55 @@
+---
+
+- name: Install dependencies
+  apt:
+    name: "{{item}}"
+    state: present
+    update_cache: yes
+  loop:
+    - apt-transport-https
+    - ca-certificates
+    - curl
+    - gnupg
+    - lsb-release
+
+- name: Add GPG key
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+
+- name: Get linux release codename
+  shell: "echo $(lsb_release -cs)"
+  register: codename
+
+- name: Add docker repository to apt
+  apt_repository:
+    repo: deb https://download.docker.com/linux/ubuntu {{ codename.stdout }} stable
+    state: present
+
+- name: Install docker
+  apt:
+    name: "{{item}}"
+    state: latest
+    update_cache: yes
+  loop:
+    - docker-ce
+    - docker-ce-cli
+    - containerd.io
+    - docker-compose
+
+- name: Make sure docker is started
+  service:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: Install docker SDK for python
+  ansible.builtin.pip:
+    name: docker
+
+- name: Add a docker user
+  ansible.builtin.user:
+    name: "{{ DOCKER_USER_NAME }}"
+    state: present
+    group: "docker"
+    shell: /sbin/nologin

@@ -1,0 +1,40 @@
+---
+- name: Add syncthing apt key
+  ansible.builtin.apt_key:
+    url: https://syncthing.net/release-key.gpg
+    state: present
+
+- name: Add syncthing repository
+  ansible.builtin.apt_repository:
+    repo: "deb https://apt.syncthing.net/ syncthing stable"
+    state: present
+
+- name: Create user for syncthing
+  ansible.builtin.user:
+    name: 'syncthing'
+    shell: /bin/bash
+
+- name: Install Syncthing
+  apt:
+    name: 
+    - syncthing
+    state: present
+  become: yes
+
+- name: Copy syncthing service file to server
+  ansible.builtin.copy:
+    dest: /lib/systemd/system/syncthing@.service
+    src: ./syncthing_service_file
+
+- name: allow external access to syncthing
+  ansible.builtin.lineinfile:
+    path: /home/syncthing/.config/syncthing/config.xml
+    search_string: "<address>127.0.0.1:8384</address>"
+    line: <address>0.0.0.0:8384</address>
+    state: present
+
+- name: Enable Syncthing on boot
+  ansible.builtin.service:
+    name: syncthing@syncthing
+    state: restarted
+    enabled: yes

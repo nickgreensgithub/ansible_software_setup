@@ -1,0 +1,16 @@
+---
+- name: Install lmod
+  include_role:
+    name: idiv-biodiversity.lmod
+  vars:
+    #lmod_version: '8.5.18'# moved to vars file
+    lmod_prefix: "{{lmod_module_root}}"
+    lmod_module_root_path: '{{ lmod_prefix }}/{{ modules_folder }}'
+    lmod_install: true
+    lmod_spider_cache_cron: yes
+    lmod_spider_cache_cron_minute: '0'
+    lmod_canary: no
+    lmod_init_bash_file: 'z00-lmod.sh'
+    lmod_init_csh_file: 'z00-lmod.csh'
+
+# ! TODO add legacy modules location

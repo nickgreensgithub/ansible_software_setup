@@ -1,0 +1,4 @@
+lmod_module_root: "/shared/software_stack"
+modules_folder: "modules"
+module_software_folder: "software"
+lmod_version: '8.5.18'

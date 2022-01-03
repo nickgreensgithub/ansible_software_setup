@@ -12,10 +12,12 @@
 #     - gnupg
 #     - lsb-release
 
-- name: Add GPG key
-  apt_key:
-    url: https://packages.grafana.com/gpg.key
-    state: present
+
+- name: Add apt key
+  ansible.builtin.include_role:
+    name: /mnt/files/projects/ansible/ndg/linux_misc/roles/add_apt_keys
+  vars:
+    - apt_keys: "https://packages.grafana.com/gpg.key"
 
 # - name: Get linux release codename
 #   shell: "echo $(lsb_release -cs)"
@@ -23,7 +25,7 @@
 
 - name: Add grafana repository to apt
   apt_repository:
-    repo: ddeb https://packages.grafana.com/enterprise/deb stable main
+    repo: deb https://packages.grafana.com/enterprise/deb stable main
     state: present
 
 - name: Run apt get update

@@ -17,10 +17,10 @@
     dist_fact: "{{ machine_distribution.stdout }}"
 
 - name: Add apt key
-  ansible.builtin.include:
+  ansible.builtin.include_role:
     name: ndg.linux_misc.add_apt_keys
-    vars:
-      - apt_keys: "https://apt.releases.hashicorp.com/gpg"
+  vars:
+    - apt_keys: "https://apt.releases.hashicorp.com/gpg"
 
 - name: Add repo
   ansible.builtin.include:

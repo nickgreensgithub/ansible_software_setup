@@ -1,0 +1,34 @@
+---
+#TODO add linux_misc collection as dependency for this collection
+- name: Print machine architecture
+  shell: dpkg --print-architecture
+  register: machine_architecture
+
+- name: Print machine distribution
+  shell: lsb_release -cs
+  register: machine_distribution
+
+- name: set architecture fact
+  set_fact:
+    arch_fact: "{{ machine_architecture.stdout }}"
+
+- name: set distribution fact
+  set_fact:
+    dist_fact: "{{ machine_distribution.stdout }}"
+
+- name: Add apt key
+  ansible.builtin.include:
+    name: ndg.linux_misc.add_apt_keys
+    vars:
+      - apt_keys: "https://apt.releases.hashicorp.com/gpg"
+
+- name: Add repo
+  ansible.builtin.include:
+    name: ndg.linux_misc.add_repositories
+    vars:
+      - repos: "deb [arch={{ arch_fact }}] https://apt.releases.hashicorp.com {{ dist_fact }} main"
+
+- name: Install Terraform
+  ansible.builtin.apt:
+    name: terraform
+    state: present

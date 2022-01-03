@@ -1,0 +1,44 @@
+---
+
+# - name: Install dependencies
+#   apt:
+#     name: "{{item}}"
+#     state: present
+#     update_cache: yes
+#   loop:
+#     - apt-transport-https
+#     - ca-certificates
+#     - curl
+#     - gnupg
+#     - lsb-release
+
+- name: Add GPG key
+  apt_key:
+    url: https://packages.grafana.com/gpg.key
+    state: present
+
+# - name: Get linux release codename
+#   shell: "echo $(lsb_release -cs)"
+#   register: codename
+
+- name: Add grafana repository to apt
+  apt_repository:
+    repo: ddeb https://packages.grafana.com/enterprise/deb stable main
+    state: present
+
+- name: Run apt get update
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Install grafana
+  apt:
+    name: grafana-enterprise
+    state: latest
+    update_cache: yes
+
+- name: Make sure grafana is started
+  service:
+    name: grafana-server
+    state: started
+    enabled: yes

@@ -23,7 +23,7 @@
     - apt_keys: "https://apt.releases.hashicorp.com/gpg"
 
 - name: Add repo
-  ansible.builtin.include:
+  ansible.builtin.include_role:
     name: ndg.linux_misc.add_repositories
   vars:
     - repos: "deb [arch={{ arch_fact }}] https://apt.releases.hashicorp.com {{ dist_fact }} main"

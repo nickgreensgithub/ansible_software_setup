@@ -1,0 +1,98 @@
+---
+
+- name: Create extraction location
+  ansible.builtin.file:
+    path: /tmp/prometheus_{{ VERSION }}
+    state: directory
+
+- name: Download and extract archive
+  ansible.builtin.unarchive:
+    src: https://github.com/prometheus/prometheus/releases/download/v{{ VERSION  }}/prometheus-{{ VERSION  }}.linux-amd64.tar.gz
+    dest: /tmp/prometheus_{{ VERSION }}
+    remote_src: true
+    extra_opts: --strip-components=1
+
+- name: Create Prometheus user
+  ansible.builtin.user:
+    name: prometheus
+    create_home: no
+    shell: /bin/false
+    system: yes
+    state: present
+
+- name: Move files to install location
+  ansible.builtin.copy:
+    src: /tmp/prometheus_{{ VERSION }}/prometheus
+    dest: /usr/local/bin
+    remote_src: true
+    owner: prometheus
+    mode: 0744
+
+- name: Move files to install location
+  ansible.builtin.copy:
+    src: /tmp/prometheus_{{ VERSION }}/promtool
+    dest: /usr/local/bin
+    remote_src: true
+    owner: prometheus
+    mode: 0744
+
+
+
+- name: Create other locations
+  ansible.builtin.file:
+    path: /etc/prometheus
+    state: directory
+    owner: prometheus
+
+- name: Create other locations
+  ansible.builtin.file:
+    path: /var/lib/prometheus
+    state: directory
+    owner: prometheus
+
+- name: Move config files
+  ansible.builtin.copy:
+    src: /tmp/prometheus_{{ VERSION }}/consoles
+    dest: /etc/prometheus
+    remote_src: true
+
+- name: Move consoles
+  ansible.builtin.copy:
+    src: /tmp/prometheus_{{ VERSION }}/consoles
+    dest: /etc/prometheus
+    remote_src: true
+    
+- name: Move console_libraries
+  ansible.builtin.copy:
+    src: /tmp/prometheus_{{ VERSION }}/console_libraries
+    dest: /etc/prometheus
+    remote_src: true
+
+- name: Delete extracted archive
+  ansible.builtin.file:
+    path: /tmp/prometheus_{{ VERSION }}
+    state: absent
+
+- name: Create service file
+  ansible.builtin.template:
+    src: service.j2
+    dest: /etc/systemd/system/prometheus.service
+
+- name: Create sd_configs directory
+  ansible.builtin.file:
+    path: /etc/prometheus/sd_configs
+    state: directory
+    owner: prometheus
+
+- name: Create config file
+  ansible.builtin.template:
+    src: config_scrape.j2
+    dest: /etc/prometheus/prometheus.yml
+  # vars: 
+  #   TARGETS: "{{ METRIC_SOURCES }}"
+
+- name: Enable Prometheus service
+  service:
+    name: prometheus
+    state: started
+    enabled: yes

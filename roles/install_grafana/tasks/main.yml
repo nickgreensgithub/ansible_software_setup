@@ -39,8 +39,25 @@
     state: latest
     update_cache: yes
 
+- name: Set default admin password
+  ansible.builtin.lineinfile:
+    path: /etc/grafana/grafana.ini
+    regexp: '^;admin_password ='
+    line: "^;admin_password = {{ ADMIN_PASSWORD }}"
+    state: present
+
+
 - name: Make sure grafana is started
   service:
     name: grafana-server
     state: started
     enabled: yes
+
+
+#ADD PROMETHEUS AS DATASOURCE
+# Click on the Grafana logo to open the sidebar.
+# Click on “Data Sources” in the sidebar.
+# Choose “Add New”.
+# Select “Prometheus” as the data source.
+# Set the Prometheus server URL (in our case: http://localhost:9090/)
+# Click “Add” to test the connection and to save the new data source.

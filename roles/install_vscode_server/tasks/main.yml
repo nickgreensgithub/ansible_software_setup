@@ -1,0 +1,5 @@
+---
+
+- name: Run install script
+  ansible.builtin.shell:
+    cmd: curl -fsSL https://code-server.dev/install.sh | sh

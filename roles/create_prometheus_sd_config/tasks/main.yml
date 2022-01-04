@@ -2,6 +2,6 @@
 - name: Create template for host
   template: 
     src: config.j2
-    dest: "{{ DESTINATION }}/{{ LABEL }}.yml"
+    dest: "{{ DESTINATION }}/{{ FILENAME }}.yml"
     owner: prometheus
     mode: 0744

@@ -43,14 +43,47 @@
   ansible.builtin.lineinfile:
     path: /etc/grafana/grafana.ini
     regexp: '^;admin_password ='
-    line: "^;admin_password = {{ ADMIN_PASSWORD }}"
+    line: "admin_password = {{ ADMIN_PASSWORD }}"
     state: present
 
+- name: debug value
+  ansible.builtin.debug:
+    var: LDAP_SERVER_IP
+
+- name: Enable LDAP authentication
+  ansible.builtin.lineinfile:
+    insertafter: ^\#* Auth LDAP
+    path: /etc/grafana/grafana.ini
+    regexp: '^\;enabled \= false'
+    line: 'enabled = true'
+    state: present
+  when: ENABLE_GRAFANA_LDAP_AUTH
+
+- name: Get certificate from LDAP server
+  shell:
+    cmd: openssl s_client -connect {{ LDAP_SERVER_IP }}:389 -starttls ldap -showcerts < /dev/null | openssl x509 -text | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p'
+  register: certificate_value
+
+- name: Save LDAP server certificate
+  ansible.builtin.copy:
+    dest: "{{ CERTS_LOCATION }}/{{ LDAP_TLS_CRT_FILENAME }}"
+    content: "{{certificate_value.stdout}}"
+
+- name: Template Grafana LDAP configuration
+  ansible.builtin.template:
+    src: ldap_config.j2
+    dest: /etc/grafana/ldap.toml
+
+- name: Create proviioning datasource
+  ansible.builtin.copy:
+    dest: '/etc/grafana/provisioning/datasources/manager-node-prometheus.yaml'
+    content: "{{ DATASOURCE }}"
+  when: DATASOURCE
 
 - name: Make sure grafana is started
   service:
     name: grafana-server
-    state: started
+    state: restarted
     enabled: yes
 
 

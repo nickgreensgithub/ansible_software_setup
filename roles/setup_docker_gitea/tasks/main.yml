@@ -1,0 +1,45 @@
+---
+- name: Create required folders
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: docker
+    group: docker
+  with_items: 
+    - "{{ GITEA_ROOT_PATH }}"
+    - "{{ GITEA_ROOT_PATH }}/data"
+    - "{{ GITEA_ROOT_PATH }}/data/custom/conf"
+
+- getent:
+    database: passwd
+
+- name: Template docker compose file
+  ansible.builtin.template:
+    src: docker-compose.j2
+    dest: "{{ GITEA_ROOT_PATH }}/docker-compose.yml"
+  vars:
+    - USER_UID: "{{ getent_passwd['docker'].1 }}"
+    - USER_GID: "{{ getent_passwd['docker'].2 }}"
+
+#TODO used for customising other values 
+- name: Template custom config file
+  ansible.builtin.template:
+    src: custom_config.ini.j2
+    dest: "{{ GITEA_ROOT_PATH }}/data/custom/conf/app.ini"
+  vars:
+    - ROOT_URL: "{{ HOST_IP }}"
+
+- name: Deploy Docker Compose stack
+  community.docker.docker_compose:
+    project_src: "{{ GITEA_ROOT_PATH }}"
+    files:
+    - docker-compose.yml
+    restarted: yes
+  become: yes
+
+- name: Create user account
+  community.docker.docker_container_exec:
+    container: gitea
+    user: git
+    command: /bin/bash -c "gitea admin user create --username {{ GITEA_DEFAULT_USERNAME }} --password {{ GITEA_DEFAULT_USER_PASSWORD }} --email {{ GITEA_DEFAULT_USER_EMAIL }}"
+  when: GITEA_CREATE_DEFAULT_USER

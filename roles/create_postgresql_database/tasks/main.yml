@@ -1,0 +1,40 @@
+---
+
+- name: "Create the database"
+  community.postgresql.postgresql_db:
+    state: present
+    name: "{{ DB_NAME }}"
+  become_user: postgres
+  become: yes
+
+- name: "Create database user"
+  community.postgresql.postgresql_user:
+    name: "{{ DB_USERNAME }}"
+    encrypted: yes
+    password: "{{ DB_USER_PASSWORD }}"
+    db: "{{ DB_NAME }}"
+    state: present
+    priv: ALL
+    role_attr_flags: NOSUPERUSER,NOCREATEDB
+  become_user: postgres
+  become: yes
+
+- name: "Set ownership of database"
+  community.postgresql.postgresql_owner:
+    obj_type: database
+    obj_name: "{{ DB_NAME }}"
+    new_owner: "{{ DB_USERNAME }}"
+  become_user: postgres
+  become: yes
+
+- name: Grant user access to database
+  community.postgresql.postgresql_pg_hba:
+    dest: /etc/postgresql/12/main/pg_hba.conf
+    contype: host
+    users: "{{ DB_USERNAME }}"
+    source: "{{ ALLOW_DB_ACCESS_FROM }}"
+    databases: "{{ DB_NAME }}"
+    method: md5
+    create: false
+  notify: Restart postgresql service
+

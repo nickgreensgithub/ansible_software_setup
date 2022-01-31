@@ -1,0 +1,33 @@
+---
+- name: Install packages
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - postgresql
+    - postgresql-contrib
+    - acl
+
+- name: Install Python packages
+  ansible.builtin.pip:
+    name: psycopg2-binary
+
+- name: Add postgres user to sudoers
+  ansible.builtin.user:
+    name: postgres
+    groups: sudo
+    append: yes
+
+- name: Start and enable Postgresql service
+  service:
+    name: "postgresql"
+    state: restarted
+    enabled: yes
+
+- name: Allow external access from hosts
+  ansible.builtin.lineinfile:
+    path: /etc/postgresql/12/main/postgresql.conf
+    regexp: "listen_addresses \\= "
+    state: present 
+    line: "listen_addresses = '{{ LISTEN_ADDRESSES }}'"     
+  when: ALLOW_EXTERNAL_DB_ACCESS

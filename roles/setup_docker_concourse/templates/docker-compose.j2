@@ -1,0 +1,25 @@
+version: '3'
+
+services:
+    concourse:
+        image: concourse/concourse
+        command: quickstart
+        privileged: true
+        ports: ["8080:8080"]
+        environment:
+            CONCOURSE_POSTGRES_HOST: {{ DB_HOST }}
+            CONCOURSE_POSTGRES_USER: {{ DB_USERNAME }}
+            CONCOURSE_POSTGRES_PASSWORD: {{ DB_USER_PASSWORD }}
+            CONCOURSE_POSTGRES_DATABASE: {{ DB_NAME }}
+            CONCOURSE_EXTERNAL_URL: http://{{ HOST_IP }}:8080
+            CONCOURSE_ADD_LOCAL_USER: {{ CONCOURSE_USER }}:{{ CONCOURSE_USER_PASSWORD }}
+            CONCOURSE_MAIN_TEAM_LOCAL_USER: {{ CONCOURSE_USER }}
+            # instead of relying on the default "detect"
+            CONCOURSE_WORKER_BAGGAGECLAIM_DRIVER: overlay
+            CONCOURSE_CLIENT_SECRET: {{ CONCOURSE_CLIENT_SECRET }}
+            CONCOURSE_TSA_CLIENT_SECRET: {{ CONCOURSE_TSA_CLIENT_SECRET }}
+            CONCOURSE_X_FRAME_OPTIONS: allow
+            CONCOURSE_CONTENT_SECURITY_POLICY: "*"
+            CONCOURSE_CLUSTER_NAME: MyCluster
+            CONCOURSE_WORKER_CONTAINERD_DNS_SERVER: "8.8.8.8"
+            CONCOURSE_WORKER_RUNTIME: "containerd"

@@ -1,0 +1,23 @@
+---
+- name: Create required folders
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: docker
+    group: docker
+  with_items: 
+    - "{{ CONCOURSE_ROOT_PATH }}"
+
+
+- name: Template docker compose file
+  ansible.builtin.template:
+    src: docker-compose.j2
+    dest: "{{ CONCOURSE_ROOT_PATH }}/docker-compose.yml"
+
+- name: Deploy Docker Compose stack
+  community.docker.docker_compose:
+    project_src: "{{ CONCOURSE_ROOT_PATH }}"
+    files:
+    - docker-compose.yml
+    restarted: yes
+  become: yes

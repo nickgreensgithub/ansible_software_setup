@@ -1,0 +1,49 @@
+---
+- name: Create required folders
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+
+    owner: docker
+    group: docker
+  with_items: 
+    - "{{ TAIGA_ROOT_PATH }}"
+    - "{{ TAIGA_DB_PATH }}"
+
+- name: Template docker compose file
+  ansible.builtin.template:
+    src: docker-compose.j2
+    dest: "{{ TAIGA_ROOT_PATH }}/docker-compose.yml"
+
+- name: Template docker compose taiga-manage file
+  ansible.builtin.template:
+    src: taiga_manage-compose.j2
+    dest: "{{ TAIGA_ROOT_PATH }}/docker-compose-inits.yml"
+
+- name: Template taiga-manage.sh file
+  ansible.builtin.template:
+    src: taiga_manage.j2
+    dest: "{{ TAIGA_ROOT_PATH }}/taiga-manage.sh"
+
+- name: Template network configuration
+  ansible.builtin.template:
+    src: taiga_network_conf.j2
+    dest: "{{ TAIGA_ROOT_PATH }}/taiga.conf"
+
+- name: Deploy Docker Compose stack
+  community.docker.docker_compose:
+    project_src: "{{ TAIGA_ROOT_PATH }}"
+    files:
+    - docker-compose.yml
+    restarted: yes
+  become: yes
+
+- name: Helpful hint
+  ansible.builtin.debug:
+    msg: 'Dont forget to run thi command to make a super user \n{{ TAIGA_ROOT_PATH }}/taiga-manage.sh createsuperuser'
+
+#TODO create the super user automatically with prompts
+# Username: 
+# Email address: 
+# Password: 
+# Password (again): 

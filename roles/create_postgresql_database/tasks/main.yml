@@ -23,6 +23,7 @@
   community.postgresql.postgresql_owner:
     obj_type: database
     obj_name: "{{ DB_NAME }}"
+    db: "{{ DB_NAME }}"
     new_owner: "{{ DB_USERNAME }}"
   become_user: postgres
   become: yes
@@ -37,4 +38,5 @@
     method: md5
     create: false
   notify: Restart postgresql service
+  become: yes
 

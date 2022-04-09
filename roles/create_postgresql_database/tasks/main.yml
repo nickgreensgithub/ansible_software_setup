@@ -38,5 +38,6 @@
     method: md5
     create: false
   notify: Restart postgresql service
+  become_user: postgres
   become: yes
 
